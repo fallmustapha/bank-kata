@@ -6,6 +6,7 @@ import com.test.bankkata.api.dto.requests.AccountCreationDto;
 import com.test.bankkata.api.exceptionHandlers.GlobalExceptionHandler;
 import com.test.bankkata.model.Account;
 import com.test.bankkata.model.Customer;
+import com.test.bankkata.model.Statement;
 import com.test.bankkata.model.enums.AccountType;
 import com.test.bankkata.services.AccountService;
 import org.hamcrest.core.AnyOf;
@@ -28,8 +29,7 @@ import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
@@ -200,5 +200,22 @@ public class ControllerTest {
                         .param("amount",amount)
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().is(500));
+    }
+
+    @Test
+    public void getHistoryShouldReturnOk() throws Exception{
+        var accountNumber=645465l;
+        Mockito.when(service.getHistory(accountNumber)).thenReturn(Set.of(new Statement(LocalDateTime.now(),BigDecimal.valueOf(10),BigDecimal.TEN)));
+        var result=mvc.perform(get("/accounts/"+accountNumber+"/history")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().is(200)).andReturn().getResponse();
+    }
+    @Test
+    public void getHistoryShouldReturnServerErrorWhenServiceThrowsError() throws Exception{
+        var accountNumber=645465l;
+        Mockito.when(service.getHistory(accountNumber)).thenThrow(RuntimeException.class);
+        var result=mvc.perform(get("/accounts/"+accountNumber+"/history")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().is(500)).andReturn().getResponse();
     }
 }
