@@ -16,6 +16,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -38,6 +40,21 @@ public class AccountRepositoryTest {
         var result = repository.save(account);
         assertThat(result).isNotNull();
         assertThat(repository.findById(1l)).isNotNull();
+    }
+
+    @Test
+    public void updateAccountShouldBeOk(){
+        var account = new Account(1,new Customer("test","test"), BigDecimal.ZERO, Set.of(), LocalDateTime.now(),null, AccountType.RUNNING);
+        var result = repository.save(account);
+
+        assertThat(result).isNotNull();
+        assertThat(repository.findById(1l)).isNotNull();
+
+        var accountEdited= new Account(1,new Customer("test","test"), BigDecimal.valueOf(200), Set.of(), LocalDateTime.now(),null, AccountType.RUNNING);
+        var editedResult = repository.save(accountEdited);
+        var listOfAccount= StreamSupport.stream(repository.findAll().spliterator(),false).collect(Collectors.toList());
+        assertThat(editedResult.balance().doubleValue()).isEqualTo(200);
+        assertThat(listOfAccount.size()).isEqualTo(1);
     }
 
 

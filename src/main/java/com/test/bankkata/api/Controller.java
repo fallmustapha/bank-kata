@@ -1,6 +1,7 @@
 package com.test.bankkata.api;
 
 import com.test.bankkata.api.dto.requests.AccountCreationDto;
+import com.test.bankkata.api.dto.responses.ResponseMessage;
 import com.test.bankkata.model.Account;
 import com.test.bankkata.model.Customer;
 import com.test.bankkata.model.enums.AccountType;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import javax.validation.Valid;
+import javax.websocket.server.PathParam;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -41,5 +43,27 @@ public class Controller {
                 );
         var createdAccount = service.createAccount(account);
         return new ResponseEntity(createdAccount, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{accountNumber}/deposit")
+    public ResponseEntity makeDeposit(@PathVariable long accountNumber,@PathParam("amount") long amount){
+        if(amount<=0){
+            return new ResponseEntity<>(new ResponseMessage(
+                    "the amount must be greatter than zero",
+                    HttpStatus.BAD_REQUEST,
+                    HttpStatus.BAD_REQUEST.value(),
+                    LocalDateTime.now()
+            ),HttpStatus.BAD_REQUEST);
+        }
+        if(accountNumber<=0){
+            return new ResponseEntity<>(new ResponseMessage(
+                    "the account number is invalid",
+                    HttpStatus.BAD_REQUEST,
+                    HttpStatus.BAD_REQUEST.value(),
+                    LocalDateTime.now()
+            ),HttpStatus.BAD_REQUEST);
+        }
+        service.makeDeposit(accountNumber,BigDecimal.valueOf(amount));
+        return ResponseEntity.ok("The deposit of has successfully been processed");
     }
 }

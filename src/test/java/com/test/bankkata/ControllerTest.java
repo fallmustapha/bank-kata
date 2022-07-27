@@ -8,6 +8,7 @@ import com.test.bankkata.model.Account;
 import com.test.bankkata.model.Customer;
 import com.test.bankkata.model.enums.AccountType;
 import com.test.bankkata.services.AccountService;
+import org.hamcrest.core.AnyOf;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,7 +27,9 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
@@ -56,7 +59,7 @@ public class ControllerTest {
                  .andExpect(status().is(201));
     }
     @Test
-    public void createControllerShouldReturnBadRequest() throws Exception {
+    public void createControllerShouldReturnBadRequestWhenFirstNameIsNull() throws Exception {
 
         var objectMapper = new ObjectMapper();
         var accountCreation= objectMapper.writeValueAsBytes(new AccountCreationDto(null,"Doe","RUNNING"));
@@ -65,4 +68,84 @@ public class ControllerTest {
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().is(400)).andReturn().getResponse();
 }
+    @Test
+    public void createControllerShouldReturnBadRequestWhenLastNameIsNull() throws Exception {
+
+        var objectMapper = new ObjectMapper();
+        var accountCreation= objectMapper.writeValueAsBytes(new AccountCreationDto("John",null,"RUNNING"));
+        var result=mvc.perform(post("/accounts")
+                        .content(accountCreation)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().is(400)).andReturn().getResponse();
+    }
+    @Test
+    public void createControllerShouldReturnBadRequestWhenTypeIsNull() throws Exception {
+
+        var objectMapper = new ObjectMapper();
+        var accountCreation= objectMapper.writeValueAsBytes(new AccountCreationDto("John","doe",null));
+        var result=mvc.perform(post("/accounts")
+                        .content(accountCreation)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().is(400)).andReturn().getResponse();
+    }
+    @Test
+    public void createControllerShouldReturnBadRequestWhenTheTypeIsInvalid() throws Exception {
+
+        var objectMapper = new ObjectMapper();
+        var accountCreation= objectMapper.writeValueAsBytes(new AccountCreationDto("John","doe","MyType"));
+        var result=mvc.perform(post("/accounts")
+                        .content(accountCreation)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().is(400)).andReturn().getResponse();
+    }
+
+    @Test
+    public void makeDepositShouldBeOk() throws Exception{
+        var accountNumber=645465l;
+        var amount="500";
+        Mockito.doNothing().when(service).makeDeposit(eq(accountNumber),any(BigDecimal.class));
+        mvc.perform(put("/accounts/"+accountNumber+"/deposit")
+                        .content("The deposit of has successfully been processed")
+                        .param("amount",amount)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().is(200));
+    }
+
+    @Test
+    public void makeDepositShouldReturnBadRequestWhenAccountIsNegative() throws Exception{
+        var accountNumber=-1l;
+        var amount="500";
+        mvc.perform(put("/accounts/"+accountNumber+"/deposit")
+                        .param("amount",amount)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().is(400));
+    }
+    @Test
+    public void makeDepositShouldReturnBadRequestWhenAmountIsNegative() throws Exception{
+        var accountNumber=0547l;
+        var amount="-1";
+        mvc.perform(put("/accounts/"+accountNumber+"/deposit")
+                        .param("amount",amount)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().is(400));
+    }
+    @Test
+    public void makeDepositShouldReturnBadRequestWhenAmountIsNull() throws Exception{
+        var accountNumber=0547l;
+        var amount="0";
+        mvc.perform(put("/accounts/"+accountNumber+"/deposit")
+                        .param("amount",amount)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().is(400));
+    }
+    @Test
+    public void makeDepositShouldReturnServerErrorWhenServiceThrowsException() throws Exception{
+        var accountNumber=0547l;
+        var amount="200";
+        Mockito.doThrow(RuntimeException.class).when(service).makeDeposit(eq(accountNumber),any(BigDecimal.class));
+        mvc.perform(put("/accounts/"+accountNumber+"/deposit")
+                        .param("amount",amount)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().is(500));
+    }
 }

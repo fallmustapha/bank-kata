@@ -19,12 +19,12 @@ import org.springframework.dao.DataAccessException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class AccountServiceTest {
@@ -65,6 +65,60 @@ public class AccountServiceTest {
         when(repository.save(account)).thenThrow(RuntimeException.class);
         assertThatThrownBy(() -> {
             accountService.createAccount(account);
+        }).isInstanceOf(RuntimeException.class);
+    }
+    @Test
+    public void findAccountShouldReturnValidAccount(){
+        var accountNumber= 64564l;
+        var account = new Account(accountNumber,new Customer("test","test"), BigDecimal.ZERO, Set.of(), LocalDateTime.now(),null, AccountType.RUNNING);
+        when(repository.findById(accountNumber)).thenReturn(Optional.of(account));
+        var foundAccount=accountService.findAccount(accountNumber);
+        assertThat(foundAccount).isNotNull();
+        assertThat(foundAccount.number()).isEqualTo(accountNumber);
+    }
+
+    @Test
+    public void findAccountShouldThrowsExceptionWhenAccountNumberInvalid(){
+        var accountNumber= -1l;
+        assertThatThrownBy(() -> {
+            accountService.findAccount(accountNumber);
+        }).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    //Make deposit
+    @Test
+    public void depositAccountShouldThrowsExceptionWhenAccountNumberInvalid(){
+        var accountNumber= -1l;
+        assertThatThrownBy(() -> {
+            accountService.makeDeposit(accountNumber,BigDecimal.ONE);
+        }).isInstanceOf(IllegalArgumentException.class);
+    }
+    @Test
+    public void depositAccountShouldThrowsExceptionWhenAmountInvalid(){
+        var accountNumber= 1l;
+        assertThatThrownBy(() -> {
+            accountService.makeDeposit(accountNumber,null);
+        }).isInstanceOf(IllegalArgumentException.class);
+    }
+    @Test
+    public void makeDepositAccountShouldBeOk(){
+        var accountNumber= 64564l;
+        var account = new Account(accountNumber,new Customer("test","test"), BigDecimal.ZERO, Set.of(), LocalDateTime.now(),null, AccountType.RUNNING);
+        when(repository.findById(accountNumber)).thenReturn(Optional.of(account));
+        when(repository.save(any(Account.class))).thenReturn(account);
+        accountService.makeDeposit(accountNumber,BigDecimal.valueOf(200));
+        Mockito.verify(repository,times(1)).save(any(Account.class));
+        Mockito.verify(repository,times(1)).findById(anyLong());
+    }
+
+    @Test
+    public void depositAccountShouldThrowsExceptionWhenTheRepositoryThrowsException(){
+        var accountNumber= 1l;
+        var account = new Account(accountNumber,new Customer("test","test"), BigDecimal.ZERO, Set.of(), LocalDateTime.now(),null, AccountType.RUNNING);
+        when(repository.findById(accountNumber)).thenReturn(Optional.of(account));
+        when(repository.save(any(Account.class))).thenThrow(RuntimeException.class);
+        assertThatThrownBy(() -> {
+            accountService.makeDeposit(accountNumber,BigDecimal.valueOf(200));
         }).isInstanceOf(RuntimeException.class);
     }
 }

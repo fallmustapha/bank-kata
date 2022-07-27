@@ -19,4 +19,10 @@ public class GlobalExceptionHandler {
         ResponseMessage message=new ResponseMessage(exception.getFieldError().getDefaultMessage(),HttpStatus.BAD_REQUEST ,HttpStatus.BAD_REQUEST.value(), LocalDateTime.now());
         return  new ResponseEntity(message,HttpStatus.BAD_REQUEST);
     }
+    @ExceptionHandler(Exception.class)
+
+    public ResponseEntity<ResponseMessage> handleOtherException(Exception exception, WebRequest request){
+        ResponseMessage message=new ResponseMessage("Something went wrong please retry later",HttpStatus.INTERNAL_SERVER_ERROR ,HttpStatus.INTERNAL_SERVER_ERROR.value(), LocalDateTime.now());
+        return  new ResponseEntity(message,HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }
