@@ -4,6 +4,7 @@ import com.test.bankkata.api.dto.requests.AccountCreationDto;
 import com.test.bankkata.api.dto.responses.ResponseMessage;
 import com.test.bankkata.model.Account;
 import com.test.bankkata.model.Customer;
+import com.test.bankkata.model.Statement;
 import com.test.bankkata.model.enums.AccountType;
 import com.test.bankkata.services.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,5 +88,18 @@ public class Controller {
         }
         service.makeWithdraw(accountNumber,BigDecimal.valueOf(amount));
         return ResponseEntity.ok("The debit of your account has successfully been processed");
+    }
+
+    @GetMapping("/{accountNumber}/history")
+    public ResponseEntity getHistory(@PathVariable long accountNumber){
+        if(accountNumber<=0){
+            return new ResponseEntity<>(new ResponseMessage(
+                    "the account number is invalid",
+                    HttpStatus.BAD_REQUEST,
+                    HttpStatus.BAD_REQUEST.value(),
+                    LocalDateTime.now()
+            ),HttpStatus.BAD_REQUEST);
+        }
+        return ResponseEntity.ok(service.getHistory(accountNumber));
     }
 }

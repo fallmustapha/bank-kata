@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -78,7 +79,7 @@ public class AccountService {
      * @param accountNumber
      * @param amount
      */
-    // Je suppose que les documents ne sont pas columineux en base c'est pourquoi je récupère l'objet avant de le mettre à jour
+    // Je suppose que les documents ne sont pas volumineux en base c'est pourquoi je récupère l'objet avant de le mettre à jour
     // mais dans une situation reel avec des documents volumineux et aussi pour éviter de faire sortir des infos sensibles
     // qui ne concernent pas l'opération en cours, j'aurais fait une projection sur la collection avant de mettre à jour le document directment
     public void makeWithdraw(long accountNumber, BigDecimal amount){
@@ -100,5 +101,17 @@ public class AccountService {
             throw e;
         }
 
+    }
+
+    /**
+     * return Operation history
+     * @param accountNumber
+     * @return
+     */
+    public Set<Statement> getHistory(long accountNumber){
+        if (accountNumber<=0)
+            throw new IllegalArgumentException("invalid accountNumber");
+        var account=findAccount(accountNumber);
+        return account.history();
     }
 }
