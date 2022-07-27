@@ -148,4 +148,57 @@ public class ControllerTest {
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().is(500));
     }
+
+
+    @Test
+    public void makeWithdrawShouldBeOk() throws Exception{
+        var accountNumber=645465l;
+        var amount="500";
+        Mockito.doNothing().when(service).makeWithdraw(eq(accountNumber),any(BigDecimal.class));
+        mvc.perform(put("/accounts/"+accountNumber+"/withdraw")
+                        .content("The debit of your account has successfully been processed")
+                        .param("amount",amount)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().is(200));
+    }
+
+    @Test
+    public void makeWithdrawShouldReturnBadRequestWhenAccountIsNegative() throws Exception{
+        var accountNumber=-1l;
+        var amount="500";
+        mvc.perform(put("/accounts/"+accountNumber+"/withdraw")
+                        .param("amount",amount)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().is(400));
+    }
+    @Test
+    public void makeWithdrawShouldReturnBadRequestWhenAmountIsNegative() throws Exception{
+        var accountNumber=0547l;
+        var amount="-1";
+        mvc.perform(put("/accounts/"+accountNumber+"/withdraw")
+                        .param("amount",amount)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().is(400));
+    }
+
+    @Test
+    public void makeWithdrawShouldReturnBadRequestWhenAmountIsNull() throws Exception{
+        var accountNumber=0547l;
+        var amount="0";
+        mvc.perform(put("/accounts/"+accountNumber+"/withdraw")
+                        .param("amount",amount)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().is(400));
+    }
+
+    @Test
+    public void makeWithdrawShouldReturnServerErrorWhenServiceThrowsException() throws Exception{
+        var accountNumber=0547l;
+        var amount="200";
+        Mockito.doThrow(RuntimeException.class).when(service).makeWithdraw(eq(accountNumber),any(BigDecimal.class));
+        mvc.perform(put("/accounts/"+accountNumber+"/withdraw")
+                        .param("amount",amount)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().is(500));
+    }
 }

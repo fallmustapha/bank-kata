@@ -66,4 +66,26 @@ public class Controller {
         service.makeDeposit(accountNumber,BigDecimal.valueOf(amount));
         return ResponseEntity.ok("The deposit of has successfully been processed");
     }
+
+    @PutMapping("/{accountNumber}/withdraw")
+    public ResponseEntity makeWithdraw(@PathVariable long accountNumber,@PathParam("amount") long amount){
+        if(amount<=0){
+            return new ResponseEntity<>(new ResponseMessage(
+                    "the amount must be greatter than zero",
+                    HttpStatus.BAD_REQUEST,
+                    HttpStatus.BAD_REQUEST.value(),
+                    LocalDateTime.now()
+            ),HttpStatus.BAD_REQUEST);
+        }
+        if(accountNumber<=0){
+            return new ResponseEntity<>(new ResponseMessage(
+                    "the account number is invalid",
+                    HttpStatus.BAD_REQUEST,
+                    HttpStatus.BAD_REQUEST.value(),
+                    LocalDateTime.now()
+            ),HttpStatus.BAD_REQUEST);
+        }
+        service.makeWithdraw(accountNumber,BigDecimal.valueOf(amount));
+        return ResponseEntity.ok("The debit of your account has successfully been processed");
+    }
 }
