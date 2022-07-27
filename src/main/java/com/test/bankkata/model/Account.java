@@ -28,11 +28,33 @@ public record Account(
                 return new HashSet<Statement>(history);
         }
 
+        /**
+         * Add the provided amount to the balance account
+         * @param amount
+         * @param statement
+         * @return new account with the balance increased and the history updated
+         */
         public Account deposit(BigDecimal amount,@Valid  Statement statement){
                 if (statement==null)
                         throw new IllegalArgumentException("The statement shouldn't be null");
                 var newHistory=new HashSet<Statement>(history);
                 newHistory.add(statement);
                 return new Account(number,owner,balance.add(amount),newHistory,creationDate,LocalDateTime.now(),type);
+        }
+
+        /**
+         * Debit the account
+         * @param amount
+         * @param statement
+         * @return new account with the balance decreased and the history updated
+         */
+        public Account withdraw(BigDecimal amount,@Valid  Statement statement){
+                if (statement==null)
+                        throw new IllegalArgumentException("The statement shouldn't be null");
+                if (balance.compareTo(amount)<0)
+                        throw new InvalidOperationException("No sufficient found in your bank account");
+                var newHistory=new HashSet<Statement>(history);
+                newHistory.add(statement);
+                return new Account(number,owner,balance.min(amount),newHistory,creationDate,LocalDateTime.now(),type);
         }
 }

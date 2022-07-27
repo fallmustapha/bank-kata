@@ -1,20 +1,17 @@
 package com.test.bankkata;
 
+import com.test.bankkata.exceptions.InvalidOperationException;
 import com.test.bankkata.model.Account;
 import com.test.bankkata.model.Customer;
 import com.test.bankkata.model.enums.AccountType;
 import com.test.bankkata.repositories.AccountRepository;
 import com.test.bankkata.services.AccountService;
-import org.hamcrest.core.Is;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.assertj.core.api.*;
-import org.springframework.dao.DataAccessException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -120,5 +117,25 @@ public class AccountServiceTest {
         assertThatThrownBy(() -> {
             accountService.makeDeposit(accountNumber,BigDecimal.valueOf(200));
         }).isInstanceOf(RuntimeException.class);
+    }
+
+    @Test
+    public void makeWithdrawAccountShouldBeOk(){
+        var accountNumber= 64564l;
+        var account = new Account(accountNumber,new Customer("test","test"), BigDecimal.valueOf(500), Set.of(), LocalDateTime.now(),null, AccountType.RUNNING);
+        when(repository.findById(accountNumber)).thenReturn(Optional.of(account));
+        when(repository.save(any(Account.class))).thenReturn(account);
+        accountService.makeWithdraw(accountNumber,BigDecimal.valueOf(200));
+        Mockito.verify(repository,times(1)).save(any(Account.class));
+        Mockito.verify(repository,times(1)).findById(anyLong());
+    }
+    @Test
+    public void makeWithdrawAccountShouldTrowExceptionWhenBalanceIsUnsuffisient(){
+        var accountNumber= 64564l;
+        var account = new Account(accountNumber,new Customer("test","test"), BigDecimal.ZERO, Set.of(), LocalDateTime.now(),null, AccountType.RUNNING);
+        when(repository.findById(accountNumber)).thenReturn(Optional.of(account));
+        assertThatThrownBy(() -> {
+            accountService.makeWithdraw(accountNumber,BigDecimal.valueOf(200));
+        }).isInstanceOf(InvalidOperationException.class);
     }
 }
