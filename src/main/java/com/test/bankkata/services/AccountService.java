@@ -1,11 +1,17 @@
 package com.test.bankkata.services;
 
+import com.test.bankkata.exceptions.AccountNotFoundException;
 import com.test.bankkata.model.Account;
+import com.test.bankkata.model.Statement;
 import com.test.bankkata.repositories.AccountRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Service
@@ -30,5 +36,40 @@ public class AccountService {
             throw exception;
         }
         return savedAccount;
+    }
+
+    /**
+     * Create a new account
+     * @param accountNumber
+     * @return
+     */
+    public Account findAccount(long accountNumber){
+        if (accountNumber<=0)
+            throw new IllegalArgumentException("invalid accountNumber");
+        var account=accountRepository.findById(accountNumber)
+                .orElseThrow(()->new AccountNotFoundException(String.format("Account %d not found",accountNumber)));
+        return account;
+    }
+
+    /**
+     * make a deposite in the account by retrieving it and increasing the balance
+     * @param accountNumber
+     * @param amount
+     */
+    public void makeDeposit(long accountNumber, BigDecimal amount){
+        if (amount==null||amount.intValue()<=0 )
+            throw new IllegalArgumentException("Invalid amount");
+        if (accountNumber<=0)
+            throw new IllegalArgumentException("invalid accountNumber");
+        var account = findAccount(accountNumber);
+        var newAccount = account.deposit(amount,new Statement(LocalDateTime.now(),amount,account.balance()));
+        try {
+            accountRepository.save(newAccount);
+        }catch (Exception e){
+            log.error(String.format("AccountService->createAccount :Error while updating the account %d to the database: %s",accountNumber,e.getMessage()));
+            // TODO: Send monitoring to count database errors
+            throw e;
+        }
+
     }
 }
