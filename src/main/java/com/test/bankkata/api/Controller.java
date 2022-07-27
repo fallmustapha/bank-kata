@@ -4,6 +4,8 @@ import com.test.bankkata.api.dto.requests.AccountCreationDto;
 import com.test.bankkata.model.Account;
 import com.test.bankkata.model.Customer;
 import com.test.bankkata.model.enums.AccountType;
+import com.test.bankkata.services.AccountService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +21,12 @@ import java.util.Set;
 @RequestMapping("accounts")
 public class Controller {
 
+    private final AccountService service;
+
+    @Autowired
+    public Controller(AccountService service) {
+        this.service = service;
+    }
 
     @PostMapping(consumes = {"application/json"})
     public ResponseEntity createAccount(@Valid @RequestBody  AccountCreationDto accountDto){
@@ -31,6 +39,7 @@ public class Controller {
                 null,
                 AccountType.valueOf(accountDto.getType().toUpperCase())
                 );
-        return new ResponseEntity(account, HttpStatus.CREATED);
+        var createdAccount = service.createAccount(account);
+        return new ResponseEntity(createdAccount, HttpStatus.CREATED);
     }
 }
