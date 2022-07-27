@@ -1,4 +1,4 @@
-package com.test.bankkata.repositories.dto.validations;
+package com.test.bankkata.api.dto.validations;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
