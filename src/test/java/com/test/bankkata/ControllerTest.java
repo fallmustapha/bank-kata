@@ -60,14 +60,24 @@ public class ControllerTest {
     }
     @Test
     public void createControllerShouldReturnBadRequestWhenFirstNameIsNull() throws Exception {
-
+        var account=new AccountCreationDto(null,"Doe","RUNNING");
         var objectMapper = new ObjectMapper();
-        var accountCreation= objectMapper.writeValueAsBytes(new AccountCreationDto(null,"Doe","RUNNING"));
+        var accountCreation= objectMapper.writeValueAsBytes(account);
         var result=mvc.perform(post("/accounts")
                         .content(accountCreation)
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().is(400)).andReturn().getResponse();
 }
+    @Test
+    public void createControllerShouldReturnBadRequestWhenFirstNameContainsLinks() throws Exception {
+
+        var objectMapper = new ObjectMapper();
+        var accountCreation= objectMapper.writeValueAsBytes(new AccountCreationDto("http://www.test.com","Doe","RUNNING"));
+        var result=mvc.perform(post("/accounts")
+                        .content(accountCreation)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().is(400)).andReturn().getResponse();
+    }
     @Test
     public void createControllerShouldReturnBadRequestWhenLastNameIsNull() throws Exception {
 

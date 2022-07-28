@@ -7,8 +7,6 @@ import com.test.bankkata.model.Statement;
 import com.test.bankkata.repositories.AccountRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -26,6 +24,11 @@ public class AccountService {
         this.accountRepository = accountRepository;
     }
 
+    /**
+     * This method is used to create a new account
+     * @param account
+     * @return the created account with all information completed
+     */
     public Account createAccount(Account account){
         assert Objects.nonNull(account):"Account object is required";
         Account savedAccount=null;
@@ -41,7 +44,7 @@ public class AccountService {
     }
 
     /**
-     * Create a new account
+     * Finds an account by the given number
      * @param accountNumber
      * @return
      */
@@ -75,13 +78,13 @@ public class AccountService {
 
     }
     /**
-     * make a withdraw in the account by retrieving it and decreasing the balance
+     * make a withdrawal in the account by retrieving it and decreasing the balance
      * @param accountNumber
      * @param amount
      */
     // Je suppose que les documents ne sont pas volumineux en base c'est pourquoi je récupère l'objet avant de le mettre à jour
     // mais dans une situation reel avec des documents volumineux et aussi pour éviter de faire sortir des infos sensibles
-    // qui ne concernent pas l'opération en cours, j'aurais fait une projection sur la collection avant de mettre à jour le document directment
+    // qui ne concernant pas l'opération en cours, j'aurais fait une projection sur la collection avant de mettre à jour le document directment
     public void makeWithdraw(long accountNumber, BigDecimal amount){
         if (amount==null||amount.intValue()<=0 )
             throw new IllegalArgumentException("Invalid amount");
@@ -105,8 +108,9 @@ public class AccountService {
 
     /**
      * return Operation history
+     * for each Opération when the amount is négativ then it's a withdrawal, if it's positive then it's a deposit
      * @param accountNumber
-     * @return
+     * @return Statement
      */
     public Set<Statement> getHistory(long accountNumber){
         if (accountNumber<=0)
