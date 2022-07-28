@@ -12,6 +12,16 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * This class is the model represantation of an account
+ * @param number
+ * @param owner
+ * @param balance
+ * @param history
+ * @param creationDate
+ * @param lastOperationDate
+ * @param type
+ */
 @Document
 public record Account(
         @Id
